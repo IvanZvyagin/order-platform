@@ -1,4 +1,4 @@
-package orderservice.domain;
+package orderservice.domain.entity;
 
 public enum OrderStatus {
     CREATED,

@@ -11,3 +11,7 @@ spring:
       ddl-auto: update
 server:
   port: 8080
+
+jwt:
+  secret: "mySuperSecretKeyForJWT_64chars_minimum__________CHANGE_ME_1234567890"
+  expiration: 86400000

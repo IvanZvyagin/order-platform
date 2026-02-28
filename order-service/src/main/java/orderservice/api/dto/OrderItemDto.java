@@ -1,6 +1,6 @@
-package orderservice.api;
+package orderservice.api.dto;
 
-import orderservice.domain.OrderItemEntity;
+import orderservice.domain.entity.OrderItemEntity;
 
 import java.math.BigDecimal;
 

@@ -1,7 +1,7 @@
-package orderservice.api;
+package orderservice.api.dto;
 
-import orderservice.domain.OrderEntity;
-import orderservice.domain.OrderStatus;
+import orderservice.domain.entity.OrderEntity;
+import orderservice.domain.entity.OrderStatus;
 
 import java.math.BigDecimal;
 import java.util.Set;
