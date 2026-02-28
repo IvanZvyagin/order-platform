@@ -1,8 +1,16 @@
 package orderservice.domain.service;
 
+import orderservice.api.dto.JwtTokenResponseDto;
+import orderservice.api.dto.LoginUserRequestDto;
 import orderservice.api.dto.RegisterUserRequestDto;
+import orderservice.api.dto.UserDto;
 import orderservice.domain.entity.UserEntity;
+import orderservice.domain.secuity.UserDetailsImpl;
 
-public interface UserAuthProccesor {
+public interface UserAuthProcessor {
     UserEntity registerUser(RegisterUserRequestDto request);
+
+    JwtTokenResponseDto loginUser(LoginUserRequestDto request);
+
+    UserDto getCurrentUser(UserDetailsImpl userDetails);
 }

@@ -1,4 +1,4 @@
-package orderservice.api;
+package orderservice.api.dto;
 
 import java.util.Set;
 

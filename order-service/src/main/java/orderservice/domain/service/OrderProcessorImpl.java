@@ -1,7 +1,12 @@
-package orderservice.domain;
+package orderservice.domain.service;
 
 import lombok.RequiredArgsConstructor;
-import orderservice.api.OrderCreateRequestDto;
+import orderservice.api.dto.OrderCreateRequestDto;
+import orderservice.domain.utils.OrderEntityMapper;
+import orderservice.domain.utils.OrderJpaRepository;
+import orderservice.domain.entity.OrderEntity;
+import orderservice.domain.entity.OrderItemEntity;
+import orderservice.domain.entity.OrderStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;

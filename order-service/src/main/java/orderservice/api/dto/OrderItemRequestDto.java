@@ -1,4 +1,4 @@
-package orderservice.api;
+package orderservice.api.dto;
 
 public record OrderItemRequestDto(
         Long itemId,
