@@ -1,9 +1,9 @@
-package orderservice.api;
+package orderservice.domain;
 
-import orderservice.domain.OrderEntity;
+import orderservice.api.OrderCreateRequestDto;
 
 public interface OrderProcessor {
-    OrderEntity createOrder(OrderEntity orderEntity);
+    OrderEntity createOrder(OrderCreateRequestDto request);
 
     OrderEntity getOrderOrThrow(Long id);
 }

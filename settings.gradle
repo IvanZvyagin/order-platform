@@ -1,1 +1,6 @@
 rootProject.name = 'order-platform'
+
+include ('common-libs',
+        'order-service',
+        'inventory-service',
+        'notification-service')
