@@ -1,1 +1,3 @@
-spring.application.name=order-platform
+spring:
+  application:
+    name: order-platform
