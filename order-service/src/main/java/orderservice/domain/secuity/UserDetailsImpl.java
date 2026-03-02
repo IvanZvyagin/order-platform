@@ -21,6 +21,7 @@ import java.util.UUID;
 public class UserDetailsImpl implements UserDetails {
     private UUID id;
     private String username;
+    private String email;
 
     @JsonIgnore
     private String password;
@@ -34,6 +35,7 @@ public class UserDetailsImpl implements UserDetails {
         return new UserDetailsImpl(
                 entity.getId(),
                 entity.getUsername(),
+                entity.getEmail(),
                 entity.getPassword(),
                 authorities
         );
