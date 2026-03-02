@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import orderservice.api.dto.*;
 import orderservice.domain.secuity.UserDetailsImpl;
 import orderservice.domain.service.UserAuthProcessor;
-import orderservice.domain.utils.UserEntityMapper;
+import orderservice.domain.utils.UserEntityMapperProcessor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UserAuthProcessor userAuthProcessor;
-    private final UserEntityMapper userEntityMapper;
+    private final UserEntityMapperProcessor userEntityMapper;
 
     @PostMapping("/register")
     public UserDto register(

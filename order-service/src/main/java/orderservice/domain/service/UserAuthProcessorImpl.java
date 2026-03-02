@@ -11,7 +11,7 @@ import orderservice.domain.entity.UserEntity;
 import orderservice.domain.entity.UserRole;
 import orderservice.domain.secuity.JwtUtils;
 import orderservice.domain.secuity.UserDetailsImpl;
-import orderservice.domain.utils.UserEntityMapper;
+import orderservice.domain.utils.UserEntityMapperProcessor;
 import orderservice.domain.utils.UserJpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -30,7 +30,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class UserAuthProcessorImpl implements UserAuthProcessor {
 
     private final UserJpaRepository userJpaRepository;
-    private final UserEntityMapper userEntityMapper;
+    private final UserEntityMapperProcessor userEntityMapper;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
@@ -80,6 +80,7 @@ public class UserAuthProcessorImpl implements UserAuthProcessor {
         return UserDto.builder()
                 .id(userDetails.getId())
                 .username(userDetails.getUsername())
+                .email(userDetails.getEmail())
                 .userRole(UserRole.USER)
                 .build();
     }
