@@ -53,13 +53,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
-            logger.error("Failed to establish authentication: {}");
+            log.error("Failed to establish authentication: {}", e);
         }
         filterChain.doFilter(request, response);
     }
 
     private String parseJwt(HttpServletRequest request) {
         String headerAuth = request.getHeader("Authorization");
+        log.debug("Authorization header: {}",headerAuth);
         if (headerAuth == null || !StringUtils.hasText(headerAuth)) {
             return null;
         }

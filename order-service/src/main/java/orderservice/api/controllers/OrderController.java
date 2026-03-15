@@ -1,13 +1,19 @@
 package orderservice.api.controllers;
 
+import http.order.OrderCreateRequestDto;
+import http.order.OrderDto;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import orderservice.api.dto.OrderCreateRequestDto;
-import orderservice.api.dto.OrderDto;
-import orderservice.domain.utils.OrderEntityMapper;
+import orderservice.domain.secuity.UserDetailsImpl;
 import orderservice.domain.service.OrderProcessor;
+import orderservice.domain.utils.OrderEntityMapper;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -15,24 +21,28 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class OrderController {
 
-    private final OrderEntityMapper orderEntityMapper;
+    private final OrderEntityMapper orderMapper;
     private final OrderProcessor orderProcessor;
 
     @PostMapping
-    public OrderDto createOder(
-            @RequestBody OrderCreateRequestDto request
-    ) {
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<OrderDto> createOder(
+            @Valid
+            @RequestBody OrderCreateRequestDto request,
+            @AuthenticationPrincipal UserDetailsImpl userDetails
+            ) {
         log.info("Created order request {}", request);
-        var saved = orderProcessor.createOrder(request);
-        return orderEntityMapper.toOrderDto(saved);
+        return ResponseEntity.ok(orderProcessor.createOrder(request));
     }
 
+
     @GetMapping("/{id}")
-    public OrderDto getOneById(
-            @PathVariable Long id
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<OrderDto> getOneById(
+            @PathVariable UUID id
     ) {
         log.info("Retrieving order with id {}", id);
         var found = orderProcessor.getOrderOrThrow(id);
-        return orderEntityMapper.toOrderDto(found);
+        return ResponseEntity.ok(orderMapper.toOrderDto(found));
     }
 }

@@ -19,7 +19,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class UserDetailsImpl implements UserDetails {
-    private UUID id;
+    private Long id;
     private String username;
     private String email;
 

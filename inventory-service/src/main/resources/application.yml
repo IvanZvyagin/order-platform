@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: inventory-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5434/inventorydb
+    username: inventory_user
+    password: inventory_pass
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate  # validate = не создаём таблицы автоматически, только проверяем
+    show-sql: true        # показывать SQL запросы в консоли
+    properties:
+      hibernate:
+        format_sql: true  # форматировать SQL для читаемости
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+#  liquibase:
+#    enabled: true
+#    change-log: classpath:db/changelog/changelog-master.xml
+#    default-schema: public
+
+# gRPC сервер настройки
+grpc:
+  server:
+    port: 9090
+    # порт, на котором будет работать gRPC сервер
+    address: 0.0.0.0
+
+# Логирование
+logging:
+  level:
+    # Уровень для вашего пакета
+    inventoryservice: DEBUG
+    # Для более детального логирования gRPC (опционально)
+    io.grpc: DEBUG
+    net.devh.boot.grpc: DEBUG
+    net.devh.boot.grpc.server: DEBUG
+
+# Spring Boot сервер
+server:
+  port: 8082  # REST API будет на порту 8081
