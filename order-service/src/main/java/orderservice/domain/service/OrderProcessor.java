@@ -1,10 +1,13 @@
 package orderservice.domain.service;
 
-import orderservice.api.dto.OrderCreateRequestDto;
+import http.order.OrderCreateRequestDto;
+import http.order.OrderDto;
 import orderservice.domain.entity.OrderEntity;
 
-public interface OrderProcessor {
-    OrderEntity createOrder(OrderCreateRequestDto request);
+import java.util.UUID;
 
-    OrderEntity getOrderOrThrow(Long id);
+public interface OrderProcessor {
+    OrderDto createOrder(OrderCreateRequestDto request);
+
+    OrderEntity getOrderOrThrow(UUID id);
 }

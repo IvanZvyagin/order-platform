@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "inventoryservice.grpc";
+option java_outer_classname = "InventoryProto";
+
+package inventory;
+
+message CheckRequest{
+  int64 product_id = 1;
+  int32 quantity = 2;
+}
+
+message ProductInfo{
+  int64 id = 1;
+  string productName = 2;
+  int32 available_quantity = 3;
+  double price = 4;
+  double discount = 5;
+  double price_with_discount = 6;
+}
+
+message ReserveRequest{
+  int64 product_id = 1;
+  int32 quantity = 2;
+  string saga_id = 3;
+}
+
+message ReserveResponse{
+  bool success = 1;
+  string message = 2;
+  double price = 3;
+  double discount = 4;
+  string product_name = 5;
+}
+
+message ReleaseRequest{
+  int64 product_id = 1;
+  int32 quantity = 2;
+  string saga_id = 3;
+}
+
+message ReleaseResponse{
+  bool success = 1;
+  string message = 2;
+}
+
+service InventoryService {
+  rpc CheckAndGet(CheckRequest) returns (ProductInfo);
+
+  rpc Reserve(ReserveRequest) returns (ReserveResponse);
+
+  rpc Release(ReleaseRequest) returns (ReleaseResponse);
+}

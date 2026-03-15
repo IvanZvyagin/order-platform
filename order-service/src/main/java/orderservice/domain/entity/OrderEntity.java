@@ -1,14 +1,11 @@
 package orderservice.domain.entity;
 
+import http.order.OrderStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 @Setter
 @Getter
@@ -18,11 +15,10 @@ import java.util.Set;
 @Table(name = "orders")
 public class OrderEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Column(name = "id", nullable = false)
-    private Long id;
+    @Column(name = "order_id", nullable = false, unique = true)
+    private UUID orderId;
 
-    @Column(name = "customer_id")
+    @Column(name = "customer_id", nullable = false)
     private Long customerId;
 
     @Column(name = "total_amount", precision = 19, scale = 2)
@@ -32,7 +28,11 @@ public class OrderEntity {
     @Column(name = "order_status", nullable = false)
     private OrderStatus orderStatus;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
-    private Set<OrderItemEntity> items = new LinkedHashSet<>();
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<OrderItemEntity> items = new ArrayList<>();
 
+    public void addItem(OrderItemEntity item){
+        items.add(item);
+        item.setOrder(this);
+    }
 }

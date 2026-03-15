@@ -1,55 +1,38 @@
 package orderservice.domain.service;
 
+import http.order.OrderCreateRequestDto;
+import http.order.OrderDto;
 import lombok.RequiredArgsConstructor;
-import orderservice.api.dto.OrderCreateRequestDto;
-import orderservice.domain.utils.OrderEntityMapper;
-import orderservice.domain.utils.OrderJpaRepository;
+import lombok.extern.slf4j.Slf4j;
 import orderservice.domain.entity.OrderEntity;
-import orderservice.domain.entity.OrderItemEntity;
-import orderservice.domain.entity.OrderStatus;
+import orderservice.domain.saga.CreateOrderSagaOrchestrator;
+import orderservice.domain.utils.OrderJpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.math.BigDecimal;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.UUID;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class OrderProcessorImpl implements OrderProcessor {
-
+    private final CreateOrderSagaOrchestrator sagaOrchestrator;
     private final OrderJpaRepository orderJpaRepository;
-    private final OrderEntityMapper orderEntityMapper;
 
     @Override
-    public OrderEntity createOrder(OrderCreateRequestDto request) {
-        var entity = orderEntityMapper.toEntity(request);
-        calculatePricingForOrder(entity);
-        entity.setOrderStatus(OrderStatus.CREATED);
-        return orderJpaRepository.save(entity);
+    public OrderDto createOrder(OrderCreateRequestDto request) {
+        return sagaOrchestrator.createOrderSaga(request);
     }
 
-
-
     @Override
-    public OrderEntity getOrderOrThrow(Long id) {
+    public OrderEntity getOrderOrThrow(UUID id) {
         Optional<OrderEntity> orderEntityOptional = orderJpaRepository.findById(id);
         return orderEntityOptional
                 .orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Entity with id `%s` not found".formatted(id)));
+                        new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "Entity with id `%s` not found".formatted(id)));
     }
-
-    private void calculatePricingForOrder(OrderEntity entity) {
-        BigDecimal totalPrice = BigDecimal.ZERO;
-        for(OrderItemEntity item : entity.getItems()){
-            var randomPrice = ThreadLocalRandom.current().nextDouble(100,10000);
-            item.setPrice(BigDecimal.valueOf(randomPrice));
-            totalPrice = item.getPrice()
-                    .multiply(BigDecimal.valueOf(item.getQuantity()))
-                    .add(totalPrice);
-        }
-        entity.setTotalAmount(totalPrice);
-    }
-
+//  private final OrderKafkaProducer orderKafkaProducer;
 }

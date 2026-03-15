@@ -1,27 +1,48 @@
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    password: postgres_secret
-    username: postgres
-    url: jdbc:postgresql://localhost/orders
+    password: order_pass
+    username: order_user
+    url: jdbc:postgresql://localhost:5432/orderdb
   application:
     name: order-platform
   jpa:
     hibernate:
       ddl-auto: update
-#  liquibase:
-#    enabled: true
-#    change-log: classpath:db/changelog/changelog-master.xml
-#    default-schema: public
-#  kafka:
-#    bootstrap-servers: localhost:9092
-#    producer:
-#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-#      value-serializer: org.apache.kafka.common.serialization.StringSerializer
-#      acks: all
-#      retries: 3
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/changelog-master.yaml
+    default-schema: public
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+
+grpc:
+  client:
+    inventory-service:
+      address: 'inventory-service:9090'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
+
 jwt:
   secret: "mySuperSecretKeyForJWT_64chars_minimum__________CHANGE_ME_1234567890"
   expiration: 86400000
 server:
-  port: 8080
+  port: 8081
+
+logging:
+  level:
+    # Логи вашего фильтра
+    orderservice.domain.secuity.JwtAuthFilter: DEBUG
+    # Если хотите видеть детали Spring Security (опционально)
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+    orderservice: DEBUG

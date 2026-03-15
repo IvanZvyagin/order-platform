@@ -9,7 +9,7 @@ import java.util.UUID;
  * DTO for {@link orderservice.domain.entity.UserEntity}
  */
 @Builder
-public record UserDto(UUID id,
+public record UserDto(Long id,
                       String username,
                       String email,
                       UserRole userRole) {
