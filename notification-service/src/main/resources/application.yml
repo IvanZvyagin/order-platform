@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: notification-service-reactive
+
+  # R2DBC конфигурация (реактивный доступ к БД)
+  r2dbc:
+    url: r2dbc:postgresql://notification-db:5432/notificationdb
+    username: notification_user
+    password: notification_pass
+    pool:
+      initial-size: 5
+      max-size: 20
+      max-idle-time: 30s
+      validation-query: SELECT 1
+
+  # Liquibase остаётся императивным (требует JDBC)
+  datasource:
+    url: jdbc:postgresql://notification-db:5432/notificationdb
+    username: notification_user
+    password: notification_pass
+    driver-class-name: org.postgresql.Driver
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/changelog-master.xml
+
+  # Actuator для мониторинга
+  boot:
+    admin:
+      client:
+        url: http://localhost:8080
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,metrics,prometheus
+    endpoint:
+      health:
+        show-details: always
+
+# Kafka реактивная конфигурация
+kafka:
+  bootstrap-servers: localhost:9092
+  consumer:
+    group-id: notification-reactive-group
+    auto-offset-reset: earliest
+    properties:
+      isolation.level: read_committed
+
+# Логирование реактивных операторов
+logging:
+  level:
+    root: INFO
+    com.example: DEBUG
+    org.springframework.r2dbc: DEBUG
+    reactor.kafka: DEBUG
+
+server:
+  port: 8083

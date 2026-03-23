@@ -33,19 +33,19 @@ services:
     networks:
       - backend
 
-#  notification-db:
-#    image: postgres:16
-#    container_name: notification-db
-#    environment:
-#      POSTGRES_DB: notificationdb
-#      POSTGRES_USER: notification_user
-#      POSTGRES_PASSWORD: notification_pass
-#    ports:
-#      - "5435:5432"
-#    volumes:
-#      - notification-db-data:/var/lib/postgresql/data
-#    networks:
-#      - backend
+  notification-db:
+    image: postgres:16
+    container_name: notification-db
+    environment:
+      POSTGRES_DB: notificationdb
+      POSTGRES_USER: notification_user
+      POSTGRES_PASSWORD: notification_pass
+    ports:
+      - "5435:5432"
+    volumes:
+      - notification-db-data:/var/lib/postgresql/data
+    networks:
+      - backend
 
   order-service:
     build:
@@ -78,19 +78,157 @@ services:
       - "8082:8082"
     networks:
       - backend
-#  notification-service:
-#    build: ./notification-service
-#    container_name: notification-service
-#    depends_on:
-#      - notification-db
-#    environment:
-#      SPRING_DATASOURCE_URL: jdbc:postgresql://notification-db:5432/notificationdb
-#      SPRING_DATASOURCE_USERNAME: notification_user
-#      SPRING_DATASOURCE_PASSWORD: notification_pass
-#    ports:
-#      - "8083:8083"
-#    networks:
-#      - backend
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    depends_on:
+      - notification-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://notification-db:5432/notificationdb
+      SPRING_DATASOURCE_USERNAME: notification_user
+      SPRING_DATASOURCE_PASSWORD: notification_pass
+    ports:
+      - "8083:8083"
+    networks:
+      - backend
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: order-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - order-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: order-kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"      # Для клиентов внутри Docker сети
+      - "9093:9093"      # Для клиентов с хоста (локальная разработка)
+      - "29092:29092"    # Для других контейнеров в сети
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+      # Сетевые настройки
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: |
+        PLAINTEXT://kafka:29092,
+        PLAINTEXT_HOST://localhost:9093
+      KAFKA_LISTENERS: |
+        PLAINTEXT://0.0.0.0:29092,
+        PLAINTEXT_HOST://0.0.0.0:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      # Репликация и отказоустойчивость
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+
+      # Хранение сообщений
+      KAFKA_LOG_RETENTION_HOURS: 168          # 7 дней
+      KAFKA_LOG_RETENTION_BYTES: 1073741824   # 1 ГБ на партицию
+      KAFKA_LOG_SEGMENT_BYTES: 104857600      # 100 МБ на сегмент
+
+      # Производительность
+      KAFKA_NUM_PARTITIONS: 3                 # Партиций по умолчанию для новых топиков
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false' # Запрещаем автоматическое создание топиков!
+    networks:
+      - order-network
+    healthcheck:
+      test: [ "CMD", "kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.6.1
+    container_name: order-schema-registry
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8085:8085"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:29092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8085
+    networks:
+      - order-network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: order-kafka-ui
+    depends_on:
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: order-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8085
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    networks:
+      - order-network
+      -
+  kafka-init-topics:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: order-kafka-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER: kafka:29092
+    entrypoint: [ "/bin/sh", "-c" ]
+    command: |
+      "
+      # Ждём полной готовности Kafka
+      sleep 10
+      
+      # Создаём топик для заказов
+      kafka-topics --bootstrap-server $${KAFKA_BROKER} --create \
+        --topic orders \
+        --partitions 3 \
+        --replication-factor 1 \
+        --config retention.ms=604800000 \
+        --config cleanup.policy=delete \
+        --config max.message.bytes=1048576 \
+        --if-not-exists
+      
+      # Топик для отменённых заказов (компенсация)
+      kafka-topics --bootstrap-server $${KAFKA_BROKER} --create \
+        --topic orders-cancelled \
+        --partitions 3 \
+        --replication-factor 1 \
+        --config retention.ms=259200000 \
+        --if-not-exists
+      
+      # Топик для уведомлений (email/sms)
+      kafka-topics --bootstrap-server $${KAFKA_BROKER} --create \
+        --topic notifications \
+        --partitions 3 \
+        --replication-factor 1 \
+        --config retention.ms=86400000 \
+        --if-not-exists
+      
+      echo '✅ Все топики созданы успешно'
+      "
+    networks:
+      - order-network
 
 volumes:
   order-db-data:

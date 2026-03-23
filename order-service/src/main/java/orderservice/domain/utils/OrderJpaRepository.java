@@ -10,8 +10,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface OrderJpaRepository extends JpaRepository<OrderEntity, UUID> {
-    Optional<OrderEntity> findByOrderId(UUID orderId);
+public interface OrderJpaRepository extends JpaRepository<OrderEntity, Long> {
+    Optional<OrderEntity> findByOrderId(Long orderId);
 
     List<OrderEntity> findByCustomerId(Long customerId);
 

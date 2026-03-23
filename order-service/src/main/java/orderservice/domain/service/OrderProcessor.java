@@ -9,5 +9,5 @@ import java.util.UUID;
 public interface OrderProcessor {
     OrderDto createOrder(OrderCreateRequestDto request);
 
-    OrderEntity getOrderOrThrow(UUID id);
+    OrderEntity getOrderOrThrow(Long id);
 }

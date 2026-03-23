@@ -15,6 +15,7 @@ public class OrderServiceException extends RuntimeException {
 
     public enum ErrorCode {
         PRODUCT_NOT_FOUND("Товар не найден"),
+        ORDER_NOT_FOUND("Заказ не найден"),
         INSUFFICIENT_STOCK("Недостаточно товара на складе"),
         USER_NOT_FOUND("Пользователь не найден"),
         ORDER_CREATION_FAILED("Ошибка создания заказа"),

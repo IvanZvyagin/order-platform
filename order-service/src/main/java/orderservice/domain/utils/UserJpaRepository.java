@@ -3,7 +3,6 @@ package orderservice.domain.utils;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import orderservice.domain.entity.UserEntity;
-import org.mapstruct.control.MappingControl;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

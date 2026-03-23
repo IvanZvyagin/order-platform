@@ -1,18 +1,17 @@
-package controller;
+package notificationservice.controller;
 
-import entity.NsOrderEntity;
+import notificationservice.entity.NsOrderEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import repository.NsOrderRepository;
-import service.NsOrderService;
+import notificationservice.repository.NsOrderRepository;
+import notificationservice.service.NsOrderService;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Slf4j
 @RestController
