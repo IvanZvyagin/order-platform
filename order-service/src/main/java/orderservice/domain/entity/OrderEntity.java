@@ -16,7 +16,8 @@ import java.util.*;
 public class OrderEntity {
     @Id
     @Column(name = "order_id", nullable = false, unique = true)
-    private UUID orderId;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long orderId;
 
     @Column(name = "customer_id", nullable = false)
     private Long customerId;

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import exception.OrderServiceException;
 import http.order.*;
 import inventoryservice.grpc.ProductInfo;
-import inventoryservice.grpc.ReserveResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import orderservice.domain.entity.OrderEntity;
@@ -162,7 +161,6 @@ public class CreateOrderSagaOrchestrator {
     private OrderEntity buildOrder(UserEntity user, List<OrderItemRequestDto> items,
                                    List<ProductInfo> productInfos) {
         OrderEntity order = new OrderEntity();
-        order.setOrderId(UUID.randomUUID());
         order.setCustomerId(user.getId());
         order.setOrderStatus(OrderStatus.CREATED);
 

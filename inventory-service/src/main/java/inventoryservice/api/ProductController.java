@@ -2,7 +2,8 @@ package inventoryservice.api;
 
 import http.inventory.ProductRequestDto;
 import http.inventory.ProductResponseDto;
-import inventoryservice.domain.*;
+import inventoryservice.domain.InventoryProcessor;
+import inventoryservice.domain.ProductMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +17,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductController {
     private final InventoryProcessor inventoryProcessor;
-    private final ProductMapper productMapper;
 
 
     @GetMapping

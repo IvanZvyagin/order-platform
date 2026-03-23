@@ -1,6 +1,6 @@
-package repository;
+package notificationservice.repository;
 
-import entity.NsOrderEntity;
+import notificationservice.entity.NsOrderEntity;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.r2dbc.repository.Query;
@@ -10,7 +10,6 @@ import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public interface NsOrderRepository extends R2dbcRepository<NsOrderEntity, Long> {
 

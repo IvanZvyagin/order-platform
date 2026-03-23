@@ -39,7 +39,7 @@ public class OrderController {
     @GetMapping("/{id}")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<OrderDto> getOneById(
-            @PathVariable UUID id
+            @PathVariable Long id
     ) {
         log.info("Retrieving order with id {}", id);
         var found = orderProcessor.getOrderOrThrow(id);

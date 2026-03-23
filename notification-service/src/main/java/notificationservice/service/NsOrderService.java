@@ -1,12 +1,11 @@
-package service;
+package notificationservice.service;
 
-import entity.NsOrderEntity;
+import notificationservice.entity.NsOrderEntity;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import repository.NsOrderRepository;
+import notificationservice.repository.NsOrderRepository;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public interface NsOrderService {
     Flux<NsOrderEntity> getAllOrders();

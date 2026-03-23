@@ -27,7 +27,7 @@ public class OrderProcessorImpl implements OrderProcessor {
     }
 
     @Override
-    public OrderEntity getOrderOrThrow(UUID id) {
+    public OrderEntity getOrderOrThrow(Long id) {
         Optional<OrderEntity> orderEntityOptional = orderJpaRepository.findById(id);
         return orderEntityOptional
                 .orElseThrow(() ->

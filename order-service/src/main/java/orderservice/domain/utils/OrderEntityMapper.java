@@ -2,12 +2,11 @@ package orderservice.domain.utils;
 
 import http.order.OrderCreateRequestDto;
 import http.order.OrderDto;
-import http.order.OrderStatus;
 import orderservice.domain.entity.OrderEntity;
-import org.mapstruct.*;
-
-import java.math.BigDecimal;
-import java.util.UUID;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.ReportingPolicy;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING,
 uses = OrderItemMapper.class)
