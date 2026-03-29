@@ -1,5 +1,7 @@
-package exception;
+package orderservice.api.exception;
 
+import exception.ErrorResponse;
+import exception.OrderServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
