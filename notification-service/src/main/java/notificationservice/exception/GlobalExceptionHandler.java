@@ -1,4 +1,4 @@
-package notificationservice.excception;
+package notificationservice.exception;
 
 import exception.ErrorResponse;
 import exception.OrderServiceException;
