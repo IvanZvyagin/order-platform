@@ -22,7 +22,7 @@ public class OrderAnalyticsController {
     private final NsOrderRepository nsOrderRepository;
 
     @GetMapping(value = "/all", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<NsOrderEntity> getAllOrdersStream(){
+    public Flux<NsOrderEntity> getAllOrdersStream() {
         log.info("Starting SEE streams for all orders");
         return nsOrderService.getAllOrders()
                 .take(Duration.ofSeconds(30))
@@ -30,41 +30,22 @@ public class OrderAnalyticsController {
     }
 
     @GetMapping("/all/json")
-    public Flux<NsOrderEntity> getAllOrdersJson(){
+    public Flux<NsOrderEntity> getAllOrdersJson() {
         return nsOrderService.getAllOrders();
     }
 
     @GetMapping("/{orderId}")
-    public Mono<NsOrderEntity> getOrderByOrderId(@PathVariable Long orderId){
+    public Mono<NsOrderEntity> getOrderByOrderId(@PathVariable Long orderId) {
         return nsOrderService.getOrderByOrderId(orderId);
     }
 
     @GetMapping("/user/{userId}")
-    public Flux<NsOrderEntity> getOrdersByUserId(@PathVariable Long userId){
+    public Flux<NsOrderEntity> getOrdersByUserId(@PathVariable Long userId) {
         return nsOrderService.getOrdersByUserId(userId);
     }
 
-    @GetMapping("/period")
-    public Flux<NsOrderEntity> getOrdersInPeriod(
-            @RequestParam String start,
-            @RequestParam String end){
-        LocalDateTime startDate = LocalDateTime.parse(start);
-        LocalDateTime endDate = LocalDateTime.parse(end);
-        return nsOrderService.getOrdersInPeriod(startDate, endDate);
-    }
-
-    @GetMapping("/stats/users")
-    public Flux<NsOrderRepository.UserStats> getUserStatistics(){
-        return nsOrderService.getUserStatistics();
-    }
-
-    @GetMapping("/stats/products")
-    public Flux<NsOrderRepository.ProductStats> getProductStatistic(){
-        return nsOrderService.getProductStatistic();
-    }
-
     @PostMapping("/debug")
-    public Mono<NsOrderEntity> saveDebugOrder(@RequestBody NsOrderEntity entity){
+    public Mono<NsOrderEntity> saveDebugOrder(@RequestBody NsOrderEntity entity) {
         return nsOrderRepository.save(entity);
     }
 }

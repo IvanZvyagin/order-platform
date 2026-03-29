@@ -11,7 +11,4 @@ public interface NsOrderService {
     Flux<NsOrderEntity> getAllOrders();
     Mono<NsOrderEntity> getOrderByOrderId(Long orderId);
     Flux<NsOrderEntity> getOrdersByUserId(Long userId);
-    Flux<NsOrderEntity> getOrdersInPeriod(LocalDateTime start, LocalDateTime end);
-    Flux<NsOrderRepository.UserStats> getUserStatistics();
-    Flux<NsOrderRepository.ProductStats> getProductStatistic();
 }

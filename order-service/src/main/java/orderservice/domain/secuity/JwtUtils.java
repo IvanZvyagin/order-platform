@@ -6,12 +6,12 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
+
 @Slf4j
 @Component
 public class JwtUtils {
@@ -31,16 +31,8 @@ public class JwtUtils {
     public String generateRefreshToken(String username) {
         return generateToken(username, jwtRefreshExpiration);
     }
-//    public String generateAccessTokenFromPrincipal(Authentication authentication){
-//        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
-//        return generateToken(userPrincipal.getUsername(), jwtAccessExpiration);
-//    }
-//
-//    public String generateRefreshTokenFromPrincipal(Authentication authentication){
-//        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
-//        return generateToken(userPrincipal.getUsername(), jwtRefreshExpiration);
-//    }
-    public String generateToken(String username, Long expiration){
+
+    public String generateToken(String username, Long expiration) {
         Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
         return Jwts.builder()
                 .setSubject(username)

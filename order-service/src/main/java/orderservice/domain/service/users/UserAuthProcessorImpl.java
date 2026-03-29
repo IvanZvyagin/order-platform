@@ -52,12 +52,6 @@ public class UserAuthProcessorImpl implements UserAuthProcessor {
         String accessToken = jwtUtils.generateAccessToken(request.username());
         String refreshToken = jwtUtils.generateRefreshToken(request.username());
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-
-//        String role = userDetails.getAuthorities().stream()
-//                .map(GrantedAuthority::getAuthority)
-//                .findFirst()
-//                .orElse("USER")
-//                .replace("ROLE_","");
         return JwtTokenResponseDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
