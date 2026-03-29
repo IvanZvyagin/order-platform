@@ -25,29 +25,33 @@ public class AuthController {
     @PostMapping("/register")
     public UserDto register(
             @Valid
-            @RequestBody RegisterUserRequestDto request
-    )
-    {
-        log.info("Register new user {}",request);
+            @RequestBody RegisterUserRequestDto request) {
+        log.info("Register new user {}", request);
         return userEntityMapper.toUserDto(userAuthProcessor.registerUser(request));
     }
 
     @PostMapping("/login")
     public ResponseEntity<JwtTokenResponseDto> login(
             @Valid
-            @RequestBody LoginUserRequestDto request
-            )
-    {
+            @RequestBody LoginUserRequestDto request) {
         log.info("User login completed {}", request);
         return ResponseEntity.ok(userAuthProcessor.loginUser(request));
+    }
+
+    @PostMapping("/refresh")
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<JwtTokenResponseDto> refresh(
+            @AuthenticationPrincipal UserDetailsImpl details,
+            @RequestBody RefreshTokenRequestDto request) {
+        log.info("Generate new access token: {}", request);
+        return ResponseEntity.ok(userAuthProcessor.generateRefreshToken(request, details));
     }
 
     @GetMapping("/me")
     @Operation(summary = "Получение данных о пользователе")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<UserDto> getCurrentUser(
-            @AuthenticationPrincipal UserDetailsImpl userDetails
-    ) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
         return ResponseEntity.ok(userAuthProcessor.getCurrentUser(userDetails));
     }
 }

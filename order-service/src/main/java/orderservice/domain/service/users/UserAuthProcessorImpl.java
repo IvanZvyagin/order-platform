@@ -1,12 +1,10 @@
 package orderservice.domain.service.users;
 
+import exception.OrderServiceException;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
-import orderservice.api.dto.JwtTokenResponseDto;
-import orderservice.api.dto.LoginUserRequestDto;
-import orderservice.api.dto.RegisterUserRequestDto;
-import orderservice.api.dto.UserDto;
+import orderservice.api.dto.*;
 import orderservice.domain.entity.UserEntity;
 import orderservice.domain.entity.UserRole;
 import orderservice.domain.secuity.JwtUtils;
@@ -17,8 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +32,7 @@ public class UserAuthProcessorImpl implements UserAuthProcessor {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
+    private final UserDetails userDetails;
 
     @Override
     public UserEntity registerUser(RegisterUserRequestDto request) {
@@ -51,20 +50,38 @@ public class UserAuthProcessorImpl implements UserAuthProcessor {
                         request.username(),
                         request.password()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateAccessToken(authentication);
+        String accessToken = jwtUtils.generateAccessToken(request.username());
+        String refreshToken = jwtUtils.generateRefreshToken(request.username());
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        String role = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .findFirst()
-                .orElse("USER")
-                .replace("ROLE_","");
+//        String role = userDetails.getAuthorities().stream()
+//                .map(GrantedAuthority::getAuthority)
+//                .findFirst()
+//                .orElse("USER")
+//                .replace("ROLE_","");
         return JwtTokenResponseDto.builder()
-                .token(jwt)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .username(userDetails.getUsername())
-                .userRole(role)
+                .userRole(String.valueOf(getUserRole(userDetails)))
                 .build();
 
+    }
+
+    public JwtTokenResponseDto generateRefreshToken(RefreshTokenRequestDto request, UserDetailsImpl userDetails){
+        String refreshToken = request.refreshToken();
+        if(!jwtUtils.validateJwtToken(refreshToken)){
+            throw new OrderServiceException(OrderServiceException.ErrorCode.UNAUTHORIZED, "Invalid refresh token");
+        }
+        String username = jwtUtils.getUserNameFromJwtToken(refreshToken);
+        String newAccessToken = jwtUtils.generateAccessToken(username);
+        String newRefreshToken = jwtUtils.generateRefreshToken(username);
+        return JwtTokenResponseDto.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .username(username)
+                .userRole(String.valueOf(getUserRole(userDetails)))
+                .build();
     }
 
     @Override
@@ -72,17 +89,19 @@ public class UserAuthProcessorImpl implements UserAuthProcessor {
         if(userDetails ==null){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
         }
-        String role = userDetails.getAuthorities().stream()
-                .map(a -> a.getAuthority().replace("ROLE_",""))
-                .findFirst()
-                .orElse("USER");
-
         return UserDto.builder()
                 .id(userDetails.getId())
                 .username(userDetails.getUsername())
                 .email(userDetails.getEmail())
-                .userRole(UserRole.USER)
+                .userRole(getUserRole(userDetails))
                 .build();
+    }
+
+    private UserRole getUserRole(UserDetails  userDetails){
+       return UserRole.valueOf(userDetails.getAuthorities().stream()
+                .map(a -> a.getAuthority().replace("ROLE_",""))
+                .findFirst()
+                .orElse("USER"));
     }
 
     private void validateUsername(@NotBlank
