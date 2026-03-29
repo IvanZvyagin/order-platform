@@ -1,5 +1,6 @@
 package notificationservice.service.impl;
 
+import exception.ErrorCode;
 import exception.OrderServiceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,7 @@ public class NsOrderServiceImpl implements NsOrderService {
 
     public Mono<NsOrderEntity> getOrderByOrderId(Long orderId) {
         return nsOrderRepository.findByOrderId(orderId)
-                .switchIfEmpty(Mono.error(new OrderServiceException(OrderServiceException.ErrorCode.ORDER_NOT_FOUND)))
+                .switchIfEmpty(Mono.error(new OrderServiceException(ErrorCode.ORDER_NOT_FOUND)))
                 .doOnSubscribe(s -> log.debug("Fetching order by orderId: {}", orderId));
     }
 

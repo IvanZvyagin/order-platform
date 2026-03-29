@@ -1,5 +1,6 @@
 package orderservice.domain.service.users;
 
+import exception.ErrorCode;
 import exception.OrderServiceException;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -64,7 +65,7 @@ public class UserAuthProcessorImpl implements UserAuthProcessor {
     public JwtTokenResponseDto generateRefreshToken(RefreshTokenRequestDto request, UserDetailsImpl userDetails){
         String refreshToken = request.refreshToken();
         if(!jwtUtils.validateJwtToken(refreshToken)){
-            throw new OrderServiceException(OrderServiceException.ErrorCode.UNAUTHORIZED, "Invalid refresh token");
+            throw new OrderServiceException(ErrorCode.UNAUTHORIZED, "Invalid refresh token");
         }
         String username = jwtUtils.getUserNameFromJwtToken(refreshToken);
         String newAccessToken = jwtUtils.generateAccessToken(username);

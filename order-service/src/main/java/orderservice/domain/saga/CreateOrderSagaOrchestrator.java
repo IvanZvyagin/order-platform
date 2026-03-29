@@ -2,6 +2,7 @@ package orderservice.domain.saga;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import exception.ErrorCode;
 import exception.OrderServiceException;
 import http.order.*;
 import inventoryservice.grpc.ProductInfo;
@@ -32,7 +33,6 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class CreateOrderSagaOrchestrator {
     private final InventoryGrpcClient inventoryClient;
-//    private final OrderJpaRepository orderRepository;
     private final UserJpaRepository userRepository;
     private final SagaLogJpaRepository sagaRepository;
     private final ObjectMapper objectMapper;
@@ -68,13 +68,19 @@ public class CreateOrderSagaOrchestrator {
             log.info("Saga {} completed successfully ", sagaId);
 
             return buildOrderDto(saveOrder, productInfos);
+        }catch (OrderServiceException e){
+            log.warn("Saga {} failed woth buissnes error: {}", sagaId, e.getErrorCode());
+            compensate(sagaId, request.items());
+            updateSagaState(sagaId, "FAILED");
+            throw e;
         } catch (Exception e) {
             log.error("Saga {} failed, starting compensation", sagaId);
             compensate(sagaId, request.items());
             updateSagaState(sagaId, "FAILED");
-            throw new OrderServiceException(OrderServiceException.ErrorCode.ORDER_CREATION_FAILED);
+            throw new OrderServiceException(ErrorCode.ORDER_CREATION_FAILED);
         }
     }
+
     /**
      * Проверка доступности товара на складе
      */
@@ -85,8 +91,10 @@ public class CreateOrderSagaOrchestrator {
                 ProductInfo info = inventoryClient.checkAndGet(item.productId(), item.quantity());
                 infos.add(info);
             } catch (Exception e) {
-                log.error("Failed to check product {}: {}", item.productId(), e.getMessage());
-                throw new OrderServiceException(OrderServiceException.ErrorCode.PRODUCT_NOT_FOUND);
+                String message = e.getMessage() != null ? e.getMessage() : "Недостаточно товара на складе. Запрошено: "
+                        + item.quantity();
+                log.error("Failed to check product {}: {}", item.productId(), message);
+                throw new OrderServiceException(ErrorCode.INSUFFICIENT_STOCK);
             }
         }
         return infos;
@@ -104,7 +112,7 @@ public class CreateOrderSagaOrchestrator {
                 log.error("Failed to reserved product {}, starting partial compensation ", item.productId());
                 compensateReservations(reservedItems, sagaId);
                 updateSagaState(sagaId, "RESERVATION_FAILED");
-                throw new OrderServiceException(OrderServiceException.ErrorCode.PRODUCT_NOT_FOUND);
+                throw new OrderServiceException(ErrorCode.RESERVATION_FAILED);
             }
         }
     }
@@ -158,7 +166,7 @@ public class CreateOrderSagaOrchestrator {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new OrderServiceException(OrderServiceException.ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new OrderServiceException(ErrorCode.USER_NOT_FOUND));
     }
 
     private OrderEntity buildOrder(UserEntity user, List<OrderItemRequestDto> items,
@@ -192,7 +200,7 @@ public class CreateOrderSagaOrchestrator {
         return order;
     }
 
-    private OrderCreatedEvent buildOrderCreatedEvent(OrderEntity order, List<ProductInfo> productInfos){
+    private OrderCreatedEvent buildOrderCreatedEvent(OrderEntity order, List<ProductInfo> productInfos) {
         ProductInfo product = productInfos.get(0);
         OrderItemEntity firstItem = order.getItems().get(0);
         return OrderCreatedEvent.builder()

@@ -2,6 +2,7 @@ package exception;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
@@ -10,22 +11,10 @@ public class OrderServiceException extends RuntimeException {
     private final String message;
 
     public OrderServiceException(ErrorCode errorCode) {
-        this(errorCode, errorCode.defaultMessage);
+        this(errorCode, errorCode.getDefaultMessage());
     }
 
-    public enum ErrorCode {
-        PRODUCT_NOT_FOUND("Товар не найден"),
-        ORDER_NOT_FOUND("Заказ не найден"),
-        INSUFFICIENT_STOCK("Недостаточно товара на складе"),
-        USER_NOT_FOUND("Пользователь не найден"),
-        ORDER_CREATION_FAILED("Ошибка создания заказа"),
-        AUTHENTICATION_FAILED("Ошибка аутентификации"),
-        UNAUTHORIZED("Не авторизован");
-
-        private final String defaultMessage;
-
-        ErrorCode(String defaultMessage) {
-            this.defaultMessage = defaultMessage;
-        }
+    public HttpStatus getHttpStatus() {
+        return errorCode.getHttpStatus();
     }
 }
