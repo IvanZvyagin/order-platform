@@ -3,7 +3,6 @@ package orderservice.domain.service.users;
 import orderservice.api.dto.*;
 import orderservice.domain.entity.UserEntity;
 import orderservice.domain.secuity.UserDetailsImpl;
-import org.springframework.security.core.userdetails.UserDetails;
 
 public interface UserAuthProcessor {
     UserEntity registerUser(RegisterUserRequestDto request);

@@ -31,15 +31,15 @@ public class JwtUtils {
     public String generateRefreshToken(String username) {
         return generateToken(username, jwtRefreshExpiration);
     }
-    public String generateAccessTokenFromPrincipal(Authentication authentication){
-        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
-        return generateToken(userPrincipal.getUsername(), jwtAccessExpiration);
-    }
-
-    public String generateRefreshTokenFromPrincipal(Authentication authentication){
-        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
-        return generateToken(userPrincipal.getUsername(), jwtRefreshExpiration);
-    }
+//    public String generateAccessTokenFromPrincipal(Authentication authentication){
+//        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
+//        return generateToken(userPrincipal.getUsername(), jwtAccessExpiration);
+//    }
+//
+//    public String generateRefreshTokenFromPrincipal(Authentication authentication){
+//        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
+//        return generateToken(userPrincipal.getUsername(), jwtRefreshExpiration);
+//    }
     public String generateToken(String username, Long expiration){
         Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
         return Jwts.builder()
