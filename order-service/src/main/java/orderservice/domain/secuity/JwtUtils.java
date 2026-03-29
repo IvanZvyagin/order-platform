@@ -18,17 +18,34 @@ public class JwtUtils {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    @Value("${jwt.expiration}")
-    private int jwtExpiration;
+    @Value("${jwt.access-expiration}")
+    private Long jwtAccessExpiration;
 
-    public String generateJwtToken(Authentication authentication) {
+    @Value("${jwt.refresh-expiration}")
+    private Long jwtRefreshExpiration;
+
+    public String generateAccessToken(String username) {
+        return generateToken(username, jwtAccessExpiration);
+    }
+
+    public String generateRefreshToken(String username) {
+        return generateToken(username, jwtRefreshExpiration);
+    }
+    public String generateAccessTokenFromPrincipal(Authentication authentication){
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
-        Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+        return generateToken(userPrincipal.getUsername(), jwtAccessExpiration);
+    }
 
+    public String generateRefreshTokenFromPrincipal(Authentication authentication){
+        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
+        return generateToken(userPrincipal.getUsername(), jwtRefreshExpiration);
+    }
+    public String generateToken(String username, Long expiration){
+        Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
         return Jwts.builder()
-                .setSubject(userPrincipal.getUsername())
+                .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -42,21 +59,6 @@ public class JwtUtils {
                 .getBody();
         return claims.getSubject();
     }
-//
-//    //не протух ли токен
-//    public boolean isTokenExpired(String token) {
-//        try {
-//            Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-//            Claims claims = Jwts.parserBuilder()
-//                    .setSigningKey(key)
-//                    .build()
-//                    .parseClaimsJws(token)
-//                    .getBody();
-//            return claims.getExpiration().before(new Date());
-//        } catch (Exception e) {
-//            return true;
-//        }
-//    }
 
     public boolean validateJwtToken(String authToken) {
         try {
@@ -67,6 +69,7 @@ public class JwtUtils {
                     .parseClaimsJws(authToken);
             return true;
         } catch (Exception e) {
+            log.warn("Invalid JWT: {}", e.getMessage());
             return false;
         }
     }

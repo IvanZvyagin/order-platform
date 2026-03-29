@@ -33,7 +33,8 @@ grpc:
 
 jwt:
   secret: "mySuperSecretKeyForJWT_64chars_minimum__________CHANGE_ME_1234567890"
-  expiration: 86400000
+  access-expiration: 86400000
+  refresh-expiration: 2592000000
 server:
   port: 8081
 

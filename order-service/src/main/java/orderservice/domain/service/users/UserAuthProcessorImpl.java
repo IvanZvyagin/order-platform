@@ -51,7 +51,7 @@ public class UserAuthProcessorImpl implements UserAuthProcessor {
                         request.username(),
                         request.password()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateJwtToken(authentication);
+        String jwt = jwtUtils.generateAccessToken(authentication);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
         String role = userDetails.getAuthorities().stream()
