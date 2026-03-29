@@ -23,7 +23,7 @@ public interface NsOrderRepository extends R2dbcRepository<NsOrderEntity, Long> 
     Flux<NsOrderEntity> findOrdersInPeriod(LocalDateTime start, LocalDateTime end);
 
     @Query("""
-        SELECT user_id, COUNT(*) as order_count, SUM(total_amount) as total_spent 
+        SELECT user_id, COUNT(*) as order_count, SUM(total_price) as total_spent 
         FROM orders 
         GROUP BY user_id
         """)
