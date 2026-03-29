@@ -25,3 +25,5 @@ public class GlobalExceptionHandler extends RuntimeException{
                 .body("Internal server error");
     }
 }
+
+//будем делать пуш
