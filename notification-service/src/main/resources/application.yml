@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: notification-service-reactive
+
+  r2dbc:
+    url: r2dbc:postgresql://notification-db:5432/notificationdb
+    username: notification_user
+    password: notification_pass
+    pool:
+      initial-size: 5
+      max-size: 20
+      max-idle-time: 30s
+      validation-query: SELECT 1
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/changelog-master.yml
+    url: jdbc:postgresql://notification-db:5432/notificationdb
+    user: notification_user
+    password: notification_pass
+
+  datasource:
+    url: jdbc:postgresql://notification-db:5432/notificationdb
+    username: notification_user
+    password: notification_pass
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 2
+
+  boot:
+    admin:
+      client:
+        url: http://localhost:8080
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,metrics,prometheus
+    endpoint:
+      health:
+        show-details: always
+
+kafka:
+  bootstrap-servers: kafka:29092
+  consumer:
+    group-id: notification-reactive-group
+    auto-offset-reset: earliest
+    properties:
+      isolation.level: read_committed
+
+logging:
+  level:
+    root: INFO
+    com.example: DEBUG
+    org.springframework.r2dbc: DEBUG
+    reactor.kafka: DEBUG
+    org.springdoc: DEBUG
+
+server:
+  port: 8083
