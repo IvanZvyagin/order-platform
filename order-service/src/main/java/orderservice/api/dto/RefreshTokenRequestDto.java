@@ -1,4 +1,4 @@
-package orderservice.domain.service.users;
+package orderservice.api.dto;
 
-public record RefreshTokenRequestDto() {
-}
+public record RefreshTokenRequestDto(String refreshToken)
+{}

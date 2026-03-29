@@ -4,7 +4,8 @@ import lombok.Builder;
 
 @Builder
 public record JwtTokenResponseDto(
-        String token,
+        String accessToken,
+        String refreshToken,
         String username,
         String userRole
 ) {}
