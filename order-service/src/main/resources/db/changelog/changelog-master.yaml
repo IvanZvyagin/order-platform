@@ -42,7 +42,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: BIGSERIAL
+                  type: BIGINT
                   autoIncrement: true
                   constraints:
                     primaryKey: true
@@ -107,6 +107,62 @@ databaseChangeLog:
               - column:
                   name: updated_at
                   type: TIMESTAMP
+  - changeSet:
+      id: create_outbox_table
+      author: your_name
+      changes:
+        - createTable:
+            tableName: outbox
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: aggregate_type
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: aggregate_id
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_type
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: payload
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: published_at
+                  type: TIMESTAMP
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  defaultValue: PENDING
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: outbox
+            indexName: idx_outbox_status_created_at
+            columns:
+              - column:
+                  name: status
+              - column:
+                  name: created_at
+
         - addForeignKeyConstraint:
             constraintName: fk_order_items_order
             baseTableName: order_items

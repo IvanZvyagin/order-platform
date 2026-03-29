@@ -20,7 +20,7 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
-        spring.json.type.mapping: orderCreatedEvent:com.example.orderservice.event.OrderCreatedEvent
+        spring.json.type.mapping: orderCreatedEvent:orderservice.api.dto.OrderCreatedEvent
 
 
 grpc:

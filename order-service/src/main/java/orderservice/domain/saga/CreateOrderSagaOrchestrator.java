@@ -7,12 +7,13 @@ import http.order.*;
 import inventoryservice.grpc.ProductInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import orderservice.api.dto.OrderCreatedEvent;
 import orderservice.domain.entity.OrderEntity;
 import orderservice.domain.entity.OrderItemEntity;
 import orderservice.domain.entity.UserEntity;
 import orderservice.domain.grpc.InventoryGrpcClient;
+import orderservice.domain.service.orders.OrderStatusPersistenceService;
 import orderservice.domain.utils.OrderItemMapper;
-import orderservice.domain.utils.OrderJpaRepository;
 import orderservice.domain.utils.UserJpaRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,11 +32,12 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class CreateOrderSagaOrchestrator {
     private final InventoryGrpcClient inventoryClient;
-    private final OrderJpaRepository orderRepository;
+//    private final OrderJpaRepository orderRepository;
     private final UserJpaRepository userRepository;
     private final SagaLogJpaRepository sagaRepository;
     private final ObjectMapper objectMapper;
     private final OrderItemMapper orderItemMapper;
+    private final OrderStatusPersistenceService orderPersistenceService;
 
     /**
      * Запускает Сагу создания заказа.
@@ -58,7 +60,8 @@ public class CreateOrderSagaOrchestrator {
             updateSagaState(sagaId, "ITEMS_RESERVED");
 
             OrderEntity order = buildOrder(user, request.items(), productInfos);
-            OrderEntity saveOrder = orderRepository.save(order);
+            OrderCreatedEvent event = buildOrderCreatedEvent(order, productInfos);
+            OrderEntity saveOrder = orderPersistenceService.saveOrderWithOutbox(order, event);
             updateSagaState(sagaId, "ORDER_CREATED");
 
             updateSagaState(sagaId, "COMPLETED");
@@ -187,6 +190,23 @@ public class CreateOrderSagaOrchestrator {
         order.setTotalAmount(totalAmount);
         order.setItems(itemEntities);
         return order;
+    }
+
+    private OrderCreatedEvent buildOrderCreatedEvent(OrderEntity order, List<ProductInfo> productInfos){
+        ProductInfo product = productInfos.get(0);
+        OrderItemEntity firstItem = order.getItems().get(0);
+        return OrderCreatedEvent.builder()
+                .orderId(order.getOrderId())
+                .userId(order.getCustomerId())
+                .productId(product.getId())
+                .quantity(firstItem.getQuantity())
+                .price(firstItem.getPrice())
+                .discount(firstItem.getDiscount())
+                .totalAmount(order.getTotalAmount())
+                .status(order.getOrderStatus().name())
+                .createdAt(LocalDateTime.now())
+                .build();
+
     }
 
     private OrderDto buildOrderDto(OrderEntity savedOrder, List<ProductInfo> productInfos) {

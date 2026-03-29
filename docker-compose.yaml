@@ -44,6 +44,12 @@ services:
       - "5435:5432"
     volumes:
       - notification-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U notification_user -d notificationdb" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
     networks:
       - backend
 
@@ -53,11 +59,16 @@ services:
       dockerfile: order-service/Dockerfile
     container_name: order-service
     depends_on:
-      - order-db
+      order-db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://order-db:5432/orderdb
       SPRING_DATASOURCE_USERNAME: order_user
       SPRING_DATASOURCE_PASSWORD: order_pass
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     ports:
       - "8081:8081"
     networks:
@@ -78,15 +89,22 @@ services:
       - "8082:8082"
     networks:
       - backend
+
   notification-service:
-    build: ./notification-service
+    build:
+      context: .
+      dockerfile: notification-service/Dockerfile
     container_name: notification-service
     depends_on:
-      - notification-db
+      notification-db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://notification-db:5432/notificationdb
       SPRING_DATASOURCE_USERNAME: notification_user
       SPRING_DATASOURCE_PASSWORD: notification_pass
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     ports:
       - "8083:8083"
     networks:
@@ -99,11 +117,12 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     networks:
-      - order-network
+      - backend
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      test: [ "CMD", "nc", "-z", "localhost", "2181" ]
       interval: 10s
       timeout: 5s
+      start_period: 20s
       retries: 5
 
   kafka:
@@ -143,92 +162,67 @@ services:
       # Производительность
       KAFKA_NUM_PARTITIONS: 3                 # Партиций по умолчанию для новых топиков
       KAFKA_DEFAULT_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false' # Запрещаем автоматическое создание топиков!
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true' # Запрещаем автоматическое создание топиков!
     networks:
-      - order-network
+      - backend
     healthcheck:
-      test: [ "CMD", "kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092" ]
+      test: [ "CMD", "kafka-topics", "--bootstrap-server", "localhost:29092", "--list" ]
       interval: 10s
       timeout: 10s
+      start_period: 30s   # даём больше времени на запуск
       retries: 5
 
-  schema-registry:
-    image: confluentinc/cp-schema-registry:7.6.1
-    container_name: order-schema-registry
-    depends_on:
-      kafka:
-        condition: service_healthy
-    ports:
-      - "8085:8085"
-    environment:
-      SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:29092
-      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8085
-    networks:
-      - order-network
+#  schema-registry:
+#    image: confluentinc/cp-schema-registry:7.6.1
+#    container_name: order-schema-registry
+#    depends_on:
+#      kafka:
+#        condition: service_healthy
+#    ports:
+#      - "8085:8085"
+#    environment:
+#      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+#      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:29092
+#      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8085
+#    networks:
+#      - backend
 
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: order-kafka-ui
-    depends_on:
-      kafka:
-        condition: service_healthy
-      schema-registry:
-        condition: service_started
-    ports:
-      - "8080:8080"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: order-cluster
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
-      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8085
-      DYNAMIC_CONFIG_ENABLED: 'true'
-    networks:
-      - order-network
-      -
-  kafka-init-topics:
-    image: confluentinc/cp-kafka:7.6.1
-    container_name: order-kafka-init
-    depends_on:
-      kafka:
-        condition: service_healthy
-    environment:
-      KAFKA_BROKER: kafka:29092
-    entrypoint: [ "/bin/sh", "-c" ]
-    command: |
-      "
-      # Ждём полной готовности Kafka
-      sleep 10
-      
-      # Создаём топик для заказов
-      kafka-topics --bootstrap-server $${KAFKA_BROKER} --create \
-        --topic orders \
-        --partitions 3 \
-        --replication-factor 1 \
-        --config retention.ms=604800000 \
-        --config cleanup.policy=delete \
-        --config max.message.bytes=1048576 \
-        --if-not-exists
-      
-      # Топик для отменённых заказов (компенсация)
-      kafka-topics --bootstrap-server $${KAFKA_BROKER} --create \
-        --topic orders-cancelled \
-        --partitions 3 \
-        --replication-factor 1 \
-        --config retention.ms=259200000 \
-        --if-not-exists
-      
-      # Топик для уведомлений (email/sms)
-      kafka-topics --bootstrap-server $${KAFKA_BROKER} --create \
-        --topic notifications \
-        --partitions 3 \
-        --replication-factor 1 \
-        --config retention.ms=86400000 \
-        --if-not-exists
-      
-      echo '✅ Все топики созданы успешно'
-      "
-    networks:
-      - order-network
+#  kafka-ui:
+#    image: provectuslabs/kafka-ui:latest
+#    container_name: order-kafka-ui
+#    depends_on:
+#      kafka:
+#        condition: service_healthy
+#      schema-registry:
+#        condition: service_started
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      KAFKA_CLUSTERS_0_NAME: order-cluster
+#      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+#      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8085
+#      DYNAMIC_CONFIG_ENABLED: 'true'
+#    networks:
+#      - backend
+#  kafka-init-topics:
+#    image: confluentinc/cp-kafka:7.6.1
+#    container_name: order-kafka-init
+#    depends_on:
+#      kafka:
+#        condition: service_healthy
+#    environment:
+#      KAFKA_BROKER: kafka:29092
+#    command: >
+#      sh -c "
+#        echo 'Waiting for Kafka to be ready...';
+#        sleep 10;
+#        kafka-topics --bootstrap-server $${KAFKA_BROKER} --list | grep -q orders || kafka-topics --bootstrap-server $${KAFKA_BROKER} --create --topic orders --partitions 3 --replication-factor 1 --config retention.ms=604800000 --config cleanup.policy=delete --config max.message.bytes=1048576;
+#        kafka-topics --bootstrap-server $${KAFKA_BROKER} --list | grep -q orders-cancelled || kafka-topics --bootstrap-server $${KAFKA_BROKER} --create --topic orders-cancelled --partitions 3 --replication-factor 1 --config retention.ms=259200000;
+#        kafka-topics --bootstrap-server $${KAFKA_BROKER} --list | grep -q notifications || kafka-topics --bootstrap-server $${KAFKA_BROKER} --create --topic notifications --partitions 3 --replication-factor 1 --config retention.ms=86400000;
+#        echo '✅ Все топики созданы успешно';
+#      "
+#    networks:
+#      - backend
 
 volumes:
   order-db-data:

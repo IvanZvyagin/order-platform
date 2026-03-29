@@ -1,4 +1,4 @@
-package orderservice.domain.service;
+package orderservice.domain.service.users;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
