@@ -7,13 +7,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import orderservice.domain.secuity.UserDetailsImpl;
-import orderservice.domain.service.OrderProcessor;
+import orderservice.domain.service.orders.OrderProcessor;
 import orderservice.domain.utils.OrderEntityMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/orders")

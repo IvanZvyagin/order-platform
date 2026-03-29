@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import orderservice.api.dto.*;
 import orderservice.domain.secuity.UserDetailsImpl;
-import orderservice.domain.service.UserAuthProcessor;
+import orderservice.domain.service.users.UserAuthProcessor;
 import orderservice.domain.utils.UserEntityMapperProcessor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

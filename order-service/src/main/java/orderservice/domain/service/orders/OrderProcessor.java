@@ -1,10 +1,8 @@
-package orderservice.domain.service;
+package orderservice.domain.service.orders;
 
 import http.order.OrderCreateRequestDto;
 import http.order.OrderDto;
 import orderservice.domain.entity.OrderEntity;
-
-import java.util.UUID;
 
 public interface OrderProcessor {
     OrderDto createOrder(OrderCreateRequestDto request);

@@ -1,4 +1,4 @@
-package orderservice.domain.service;
+package orderservice.domain.service.users;
 
 import orderservice.api.dto.JwtTokenResponseDto;
 import orderservice.api.dto.LoginUserRequestDto;

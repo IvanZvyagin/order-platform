@@ -1,4 +1,4 @@
-package orderservice.domain.service;
+package orderservice.domain.service.orders;
 
 import http.order.OrderCreateRequestDto;
 import http.order.OrderDto;
@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
