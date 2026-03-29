@@ -32,7 +32,6 @@ public class UserAuthProcessorImpl implements UserAuthProcessor {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
-    private final UserDetails userDetails;
 
     @Override
     public UserEntity registerUser(RegisterUserRequestDto request) {
